@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment 
+metadata:
+  name: gogs-pg
+  labels:
+    app: gogs-pg
+spec:
+  replicas: 1 
+  selector:
+    matchLabels:
+      app: gogs-pg
+  strategy:
+    type: "Recreate"
+  template:
+    metadata:
+      labels:
+        app: gogs-pg
+    spec:
+      containers:
+      - name: postgresql
+        image: postgres
+        env:
+        - name: POSTGRESS_PASSWORD
+          value: gogs
+        ports:
+        - containerPort: 5432 
+          name: postgresql
+        resources:
+          limits:
+            memory: "128Mi"
+          requests:
+            memory: "64Mi"
+        securityContext:
+          runAsUser: 1
+        volumeMounts:
+        - name: data
+          mountPath: /var/lib/postgresql/data 
+      volumes:
+      - name: data
+        hostPath: 
+            path: /srv/state/gogs/pg
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gogs-ui
+  labels:
+    app: gogs-ui
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gogs-ui
+  template:
+    metadata:
+      labels:
+        app: gogs-ui
+    spec:
+      containers:
+      - name: gogs
+        image: gogs/gogs
+        ports:
+        - containerPort: 3000 
+          name: http 
+        volumeMounts:
+        - name: data 
+          mountPath: /data
+      volumes:
+      - name: data
+        hostPath:
+            path: /srv/state/gogs/ui
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gogs-ui
+  labels:
+    app: gogs-ui
+spec:
+  ports:
+  - port: 80
+    targetPort: 3000 
+    name: http
+  selector:
+    app: gogs-ui
+  sessionAffinity: "ClientIP"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: gogs-pg
+  labels:
+    app: gogs-pg
+spec:
+  ports:
+  - port: 5432
+    name: postgresql
+  selector:
+    app: gogs-pg
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: gogs-ingress 
+  namespace: default
+spec:
+  rules:
+    - host: gogs.ci.lan
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: gogs-ui
+              servicePort: 80
