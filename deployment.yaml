@@ -5,7 +5,7 @@ metadata:
   labels:
     app: gogs-pg
 spec:
-  replicas: 1 
+  replicas: 1
   selector:
     matchLabels:
       app: gogs-pg
@@ -106,6 +106,13 @@ metadata:
 spec:
   rules:
     - host: gogs.ci.lan
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: gogs-ui
+              servicePort: 80
+    - host: localhost
       http:
         paths:
           - path: /
