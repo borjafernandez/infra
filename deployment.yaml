@@ -112,10 +112,3 @@ spec:
             backend:
               serviceName: gogs-ui
               servicePort: 80
-    - host: localhost
-      http:
-        paths:
-          - path: /
-            backend:
-              serviceName: gogs-ui
-              servicePort: 80
