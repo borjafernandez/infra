@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment 
+kind: Deployment
 metadata:
   name: gogs-pg
   labels:
@@ -18,7 +18,7 @@ spec:
     spec:
       containers:
       - name: postgresql
-        image: postgres
+        image: postgres:12-alpine
         env:
         - name: POSTGRESS_PASSWORD
           value: gogs
@@ -47,7 +47,7 @@ metadata:
   labels:
     app: gogs-ui
 spec:
-  replicas: 2
+  replicas: 1
   selector:
     matchLabels:
       app: gogs-ui
