@@ -17,27 +17,27 @@ spec:
         app: gogs-pg
     spec:
       containers:
-      - name: postgresql
-        image: postgres:12-alpine
-        env:
-        - name: POSTGRESS_PASSWORD
-          value: gogs
-        ports:
-        - containerPort: 5432 
-          name: postgresql
-        resources:
-          limits:
-            memory: "128Mi"
-          requests:
-            memory: "64Mi"
-        securityContext:
-          runAsUser: 1000
-        volumeMounts:
-        - name: data
-          mountPath: /var/lib/postgresql/data 
+        - name: postgresql
+          image: postgres:12-alpine
+          env:
+            - name: POSTGRESS_PASSWORD
+              value: gogs
+          ports:
+            - containerPort: 5432
+              name: postgresql
+          resources:
+            limits:
+              memory: "128Mi"
+            requests:
+              memory: "64Mi"
+          securityContext:
+            runAsUser: 1000
+          volumeMounts:
+            - name: data
+              mountPath: /var/lib/postgresql/data
       volumes:
-      - name: data
-        hostPath: 
+        - name: data
+          hostPath:
             path: /srv/state/gogs/pg
 ---
 apiVersion: apps/v1
@@ -57,17 +57,17 @@ spec:
         app: gogs-ui
     spec:
       containers:
-      - name: gogs
-        image: gogs/gogs
-        ports:
-        - containerPort: 3000 
-          name: http 
-        volumeMounts:
-        - name: data 
-          mountPath: /data
+        - name: gogs
+          image: gogs/gogs
+          ports:
+            - containerPort: 3000
+              name: http
+          volumeMounts:
+            - name: data
+              mountPath: /data
       volumes:
-      - name: data
-        hostPath:
+        - name: data
+          hostPath:
             path: /srv/state/gogs/ui
 ---
 apiVersion: v1
@@ -78,9 +78,9 @@ metadata:
     app: gogs-ui
 spec:
   ports:
-  - port: 80
-    targetPort: 3000 
-    name: http
+    - port: 80
+      targetPort: 3000
+      name: http
   selector:
     app: gogs-ui
   sessionAffinity: "ClientIP"
@@ -93,15 +93,15 @@ metadata:
     app: gogs-pg
 spec:
   ports:
-  - port: 5432
-    name: postgresql
+    - port: 5432
+      name: postgresql
   selector:
     app: gogs-pg
 ---
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: gogs-ingress 
+  name: gogs-ingress
   namespace: default
 spec:
   rules:
