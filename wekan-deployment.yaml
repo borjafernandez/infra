@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: mongo-wekan-db
+  labels:
+    app: mongo-wekan
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: mongo-wekan
+  strategy:
+    type: "Recreate"
+  template:
+    metadata:
+      labels:
+        app: mongo-wekan
+    spec:
+      containers:
+        - name: mongo-wekan
+          image: mvertes/alpine-mongo
+          #        env:
+          #        - name: MONGO_INITDB_ROOT_USERNAME
+          #          value: root
+          #        - name: MONGO_INITDB_ROOT_PASSWORD
+          #          value: pencil
+          ports:
+            - containerPort: 27017
+              name: mongodb
+          volumeMounts:
+            - name: data
+              mountPath: /data/db
+      volumes:
+        - name: data
+          hostPath:
+            path: /srv/state/wekan
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: mongo-wekan-service
+  labels:
+    app: mongo-wekan-db
+spec:
+  ports:
+    - port: 27017
+      name: mongo-wekan
+  selector:
+    app: mongo-wekan
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: wekan
+  labels:
+    app: wekan
+spec:
+  replicas: 0
+  selector:
+    matchLabels:
+      app: wekan
+  template:
+    metadata:
+      labels:
+        app: wekan
+    spec:
+      containers:
+        - name: wekan
+          image: wekanteam/wekan-gantt-gpl:latest
+          env:
+            - name: ROOT_URL
+              value: http://wekan.ci.lan/
+            - name: MONGO_URL
+              value: mongodb://mongo-wekan-service:27017
+          ports:
+            - containerPort: 8080
+              name: http
+          volumeMounts:
+            - name: data
+              mountPath: /home/wekan/data
+      volumes:
+        - name: data
+          hostPath:
+            path: /srv/state/wekan
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: wekan
+  labels:
+    app: wekan
+spec:
+  ports:
+    - port: 80
+      targetPort: 8080
+      name: http
+  selector:
+    app: wekan
+  sessionAffinity: "ClientIP"
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: wekan-ingress
+  namespace: default
+spec:
+  rules:
+    - host: wekan.ci.lan
+      http:
+        paths:
+          - path: /
+            backend:
+              serviceName: wekan
+              servicePort: 80

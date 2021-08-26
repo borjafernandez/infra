@@ -15,19 +15,19 @@ spec:
         app: jenkins
     spec:
       containers:
-      - name: jenkins
-        image: jenkins/jenkins:2.249.2-lts-alpine
-        ports:
-        - containerPort: 8080 
-          name: http 
-        - containerPort: 50000 
-          name: executors 
-        volumeMounts:
-        - name: data 
-          mountPath: /var/jenkins_home
+        - name: jenkins
+          image: jenkins/jenkins:2.277.3-lts-alpine
+          ports:
+            - containerPort: 8080
+              name: http
+            - containerPort: 50000
+              name: executors
+          volumeMounts:
+            - name: data
+              mountPath: /var/jenkins_home
       volumes:
-      - name: data
-        hostPath:
+        - name: data
+          hostPath:
             path: /srv/state/jenkins
 ---
 apiVersion: v1
@@ -38,9 +38,12 @@ metadata:
     app: jenkins
 spec:
   ports:
-  - port: 80
-    targetPort: 8080
-    name: http
+    - port: 80
+      targetPort: 8080
+      name: http
+    - port: 50000
+      targetPort: 50000
+      name: http-executors
   selector:
     app: jenkins
   sessionAffinity: "ClientIP"
@@ -48,7 +51,7 @@ spec:
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: jenkins-ingress 
+  name: jenkins-ingress
   namespace: default
 spec:
   rules:
