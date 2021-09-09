@@ -1,2 +1,2 @@
 # infra
-A repo for infrastructure scripts
+A repo for sample infrastructure scripts
